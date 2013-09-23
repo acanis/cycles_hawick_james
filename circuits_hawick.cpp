@@ -9,37 +9,35 @@
  * Technical Report CSTN-013
  */
 
-import std.stdio;
+#include <vector>
+#include <string>
+#include <iostream>
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+using namespace std;
 
-int nVertices = 0;           // number of vertices
-int start = 0;               // starting vertex index
-int [][] Ak;                 // integer array size n of lists
-                             // ie the arcs from the vertex
-int [][] B;                  // integer array size n of lists
-bool [] blocked;             // logical array indexed by vertex
-ulong nCircuits = 0;         // total number of circuits found;
-ulong [] lengthHistogram;    // histogram of circuit lengths
-ulong [][] vertexPopularity; // adjacency table of occurrences of
-                             // vertices in circuits of each length
-int [] longestCircuit;       // the (first) longest circuit found
-int lenLongest = 0;          // its length
-bool enumeration = true;     // explicitly enumerate circuits
-int [] stack = null;         // stack of integers
-static int stackTop = 0;     // the number of elements on the stack
-                             // also the index "to put the next one"
 
-// return a pointer to a list of fixed max size
-int [] newList(int max) {
-    int[] retval;
-    retval.length = max + 1;
-    retval[0] = 0;
-    return retval;
-}
+int nVertices = 0;                  // number of vertices
+int start = 0;                      // starting vertex index
+vector< vector<int> > Ak; // integer array size n of lists
+                                    // ie the arcs from the vertex
+vector< vector<int> > B;  // integer array size n of lists
+vector< bool > blocked;        // logical array indexed by vertex
+int nCircuits = 0;                  // total number of circuits found;
+vector< int > lengthHistogram; // histogram of circuit lengths
+vector< vector<int> >     // adjacency table of occurrences of
+    vertexPopularity;               // vertices in circuits of each length
+vector< int > longestCircuit;  // the (first) longest circuit found
+int lenLongest = 0;                 // its length
+bool enumeration = true;            // explicitly enumerate circuits
+vector< int > stack;           // stack of integers
+static int stackTop = 0;            // the number of elements on the stack
+                                    // also the index "to put the next one"
 
 // return TRUE if value is NOT in the list
-bool notInList (int [] list, int val) {
-    assert(list != null);
-    assert(list [0] < list.length);
+bool notInList (vector<int> &list, int val) {
+    assert(list [0] < list.size());
     for (int i = 1; i <= list[0]; i++) {
         if (list[i] == val)
             return false;
@@ -48,9 +46,8 @@ bool notInList (int [] list, int val) {
 }
 
 // return TRUE if value is in the list
-bool inList (int [] list, int val) {
-    assert(list != null);
-    assert(list[0] < list.length);
+bool inList (vector<int> &list, int val) {
+    assert(list[0] < list.size());
     for (int i = 1; i <= list[0]; i++) {
         if (list[i] == val)
             return true;
@@ -59,27 +56,22 @@ bool inList (int [] list, int val) {
 }
 
 // empties a list by simply zeroing its size
-void emptyList (int [] list) {
-    assert(list != null);
-    assert(list[0] < list.length);
+bool emptyList (vector<int> &list) {
+    assert(list[0] < list.size());
     list[0] = 0;
 }
 
 // adds on to the end (making extra space if needed)
-void addToList (ref int [] list, int val) {
-    assert(list != null);
-    assert(list[0] < list.length);
+void addToList (vector<int> &list, int val) {
+    assert(list[0] < list.size());
     int newPos = list[0] + 1;
-    if (newPos >= list.length)
-        list.length = list.length + 1;
     list[newPos] = val;
     list[0] = newPos;
 }
 
 // removes all occurences of val in the list
-int removeFromList(int [] list, int val) {
-    assert(list != null);
-    assert(list[0] < list.length);
+int removeFromList (vector<int> &list, int val) {
+    assert(list[0] < list.size());
     int nOccurrences = 0;
     for (int i = 1; i <= list[0]; i++) {
         if (list[i] == val) {
@@ -97,10 +89,11 @@ int removeFromList(int [] list, int val) {
 
 void stackPrint3d() {
     int i;
+    printf("Cycle:\n");
     for (i = 0; i < stackTop-1; i++) {
-        std.stdio.writef("%d ", stack[i]);
+        printf("%d ", stack[i]);
     }
-    std.stdio.writefln("%d", stack[i]);
+    printf("%d\n", stack[i]);
 }
 
 int countAkArcs () { // return number of Arcs in graph
@@ -124,15 +117,14 @@ void unblock (int u) {
 
 // initialise the stack to some size max
 void stackInit(int max) {
-    stack.length = max;
-    assert(stack != null);
+    stack.resize(max);
     stackTop = 0;
 }
 
 // push an int onto the stack, extending if necessary
 void stackPush (int val) {
-    if (stackTop >= stack.length)
-        stack.length = stack.length + 1;
+    if (stackTop >= stack.size())
+        stack.resize(stack.size() + 1);
     stack[stackTop++] = val;
 }
 
@@ -167,7 +159,7 @@ bool circuit(int v) { // based on Johnson ’s logical procedure CIRCUIT
             nCircuits++; // and increment count of circuits found
             if (stackTop > lenLongest) { // keep a copy of the longest circuit found
                 lenLongest = stackTop;
-                longestCircuit = stack.dup;
+                longestCircuit = stack;
             }
             for (int i = 0; i < stackTop; i ++) // increment [circuit-length][vertex] for all vertices in this circuit
                  ++vertexPopularity[stackTop][stack[i]];
@@ -189,33 +181,34 @@ bool circuit(int v) { // based on Johnson ’s logical procedure CIRCUIT
     return f;
 }
 
-void setupGlobals(string[] args) {  // presupposes nVertices is set up
-    nVertices = std.conv.parse!int(args[1]);
-    Ak.length = nVertices; // Ak[i][0] is the number of members, Ak[i][1]..Ak[i][n] ARE the members, i>0
-    B.length = nVertices;  // B[i][0] is the number of members, B[i][1]..B[i][n] ARE the members , i>0
-    blocked.length = nVertices; // we use blocked [0]..blocked[n-1], i> = 0
+
+void setupGlobals(int argc, char* argv[]) {  // presupposes nVertices is set up
+    nVertices = atoi(argv[1]);
+    printf("num_vertices = %d\n", nVertices);
+    Ak.resize(nVertices); // Ak[i][0] is the number of members, Ak[i][1]..Ak[i][n] ARE the members, i>0
+    B.resize(nVertices);  // B[i][0] is the number of members, B[i][1]..B[i][n] ARE the members , i>0
+    blocked.resize(nVertices); // we use blocked [0]..blocked[n-1], i> = 0
+
     for (int i = 0; i < nVertices; i++) {
-        Ak[i] = newList(nVertices);
-        B[i] = newList(nVertices);
+        Ak[i].resize(nVertices);
+        B[i].resize(nVertices);
         blocked[i] = false;
     }
 
-    char[] buf;
-    while (stdin.readln(buf)) {
-        string[] vertices = std.array.split(std.conv.to!string(buf), " ");
-        int v1 = std.conv.parse!int(vertices[0]);
-        int v2 = std.conv.parse!int(vertices[1]);
+    int v1, v2;
+    while (cin >> v1 && cin >> v2) {
+        printf("%d -> %d\n", v1, v2);
         addToList(Ak[v1], v2);
     }
 
-    lengthHistogram.length = nVertices+1; // will use as [1]...[n] to histogram circuits by length
+    lengthHistogram.resize(nVertices+1); // will use as [1]...[n] to histogram circuits by length
                                           // [0] for zero length circuits, which are impossible
-    for (int len = 0; len < lengthHistogram.length; len++) // initialise histogram bins to empty
+    for (int len = 0; len < lengthHistogram.size(); len++) // initialise histogram bins to empty
         lengthHistogram[len] = 0;
     stackInit(nVertices);
-    vertexPopularity.length = nVertices+1; // max elementary circuit length is exactly nVertices
+    vertexPopularity.resize(nVertices+1); // max elementary circuit length is exactly nVertices
     for (int len = 0; len <= nVertices; len++) {
-        vertexPopularity[len].length = nVertices;
+        vertexPopularity[len].resize(nVertices);
         for (int j = 0; j < nVertices; j++) {
             vertexPopularity[len][j] = 0;
         }
@@ -230,17 +223,17 @@ void setupGlobals(string[] args) {  // presupposes nVertices is set up
 * 4 15\n6 13\n8 0\n8 4\n8 8\n9 9\n10 7\n10 11\n11 6\n12 1\n12 1\n12 2\n12 10\n12 12\n\
 * 12 14\n13 3\n13 12\n13 15\n14 11\n15 0" | ./circuits_hawick 16
  */
-int main(string[] args) {
-    if (args.length != 2) {
-        std.stdio.writefln("usage: echo \"v1 v2\nv1 v3\n...\" | %s num_vertices", args[0]);
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        printf("usage: echo \"v1 v2\nv1 v3\n...\" | %s num_vertices\n", argv[0]);
         return 1;
     }
-    setupGlobals(args);
+    setupGlobals(argc, argv);
     stackClear();
     start = 0;
     bool verbose = false;
     while (start < nVertices) {
-        if (verbose && enumeration) std.stdio.writefln("Starting s = %d\n", start);
+        if (verbose && enumeration) printf("Starting s = %d\n", start);
         for (int i = 0; i < nVertices; i++) { // for all i in Vk
             blocked[i] = false;
             emptyList(B[i]);
