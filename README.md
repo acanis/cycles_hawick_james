@@ -1,4 +1,4 @@
-Finding all the circuits of a directed graph with self-arcs and multiple-arcs
+C++ (STL) port: Finding all the circuits of a directed graph with self-arcs and multiple-arcs
 -----------------------------------------------------------------------------
 
 Algorithm and code by K.A. Hawick and H.A. James
@@ -11,6 +11,8 @@ Algorithm and code by K.A. Hawick and H.A. James
     Tel: +64 9 414 0800
     Fax: +64 9 441 8181
     Technical Report CSTN-013
+
+Port from D to C++ (STL) by Andrew Canis (Sept 2013)
 
 Usage
 -----
