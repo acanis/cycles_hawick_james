@@ -28,9 +28,11 @@ Testing
 --------
 
 To look at the 3 tests: test1.ps test2.ps test3.ps
+
     make dot 
 
 Run each test:
+
     make test1
     make test2
     make test3
